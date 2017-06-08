@@ -47,6 +47,18 @@ class MovieView @JvmOverloads constructor(context: Context, attrs: AttributeSet?
                                           defStyleAttr: Int = 0) :
         RelativeLayout(context, attrs, defStyleAttr) {
 
+    companion object {
+
+        private val TAG = "MovieView"
+
+        /** The amount of time we are stepping forward or backward for fast-forward and fast-rewind.  */
+        private val FAST_FORWARD_REWIND_INTERVAL = 5000 // ms
+
+        /** The amount of time until we fade out the controls.  */
+        private val TIMEOUT_CONTROLS = 3000L // ms
+
+    }
+
     /**
      * Monitors all events related to [MovieView].
      */
@@ -101,12 +113,12 @@ class MovieView @JvmOverloads constructor(context: Context, attrs: AttributeSet?
 
         // Inflate the content
         View.inflate(context, R.layout.view_movie, this)
-        mSurfaceView = findViewById<View>(R.id.surface) as SurfaceView
+        mSurfaceView = findViewById<SurfaceView>(R.id.surface)
         mShade = findViewById<View>(R.id.shade)
-        mToggle = findViewById<View>(R.id.toggle) as ImageButton
-        mFastForward = findViewById<View>(R.id.fast_forward) as ImageButton
-        mFastRewind = findViewById<View>(R.id.fast_rewind) as ImageButton
-        mMinimize = findViewById<View>(R.id.minimize) as ImageButton
+        mToggle = findViewById<ImageButton>(R.id.toggle)
+        mFastForward = findViewById<ImageButton>(R.id.fast_forward)
+        mFastRewind = findViewById<ImageButton>(R.id.fast_rewind)
+        mMinimize = findViewById<ImageButton>(R.id.minimize)
 
         // Attributes
         val a = context.obtainStyledAttributes(attrs, R.styleable.MovieView,
@@ -125,14 +137,16 @@ class MovieView @JvmOverloads constructor(context: Context, attrs: AttributeSet?
                 R.id.minimize -> mMovieListener?.onMovieMinimized()
             }
             // Start or reset the timeout to hide controls
-            if (mMediaPlayer != null) {
+            mMediaPlayer?.let { player ->
                 if (mTimeoutHandler == null) {
                     mTimeoutHandler = TimeoutHandler(this@MovieView)
                 }
-                mTimeoutHandler!!.removeMessages(TimeoutHandler.MESSAGE_HIDE_CONTROLS)
-                if (mMediaPlayer!!.isPlaying) {
-                    mTimeoutHandler!!.sendEmptyMessageDelayed(
-                            TimeoutHandler.MESSAGE_HIDE_CONTROLS, TIMEOUT_CONTROLS.toLong())
+                mTimeoutHandler?.let { handler ->
+                    handler.removeMessages(TimeoutHandler.MESSAGE_HIDE_CONTROLS)
+                    if (player.isPlaying) {
+                        handler.sendEmptyMessageDelayed(TimeoutHandler.MESSAGE_HIDE_CONTROLS,
+                                TIMEOUT_CONTROLS)
+                    }
                 }
             }
         }
@@ -148,23 +162,22 @@ class MovieView @JvmOverloads constructor(context: Context, attrs: AttributeSet?
                 openVideo(holder.surface)
             }
 
-            override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
+            override fun surfaceChanged(holder: SurfaceHolder, format: Int,
+                                        width: Int, height: Int) {
                 // Do nothing
             }
 
             override fun surfaceDestroyed(holder: SurfaceHolder) {
-                if (mMediaPlayer != null) {
-                    mSavedCurrentPosition = mMediaPlayer!!.currentPosition
-                }
+                mMediaPlayer?.let { mSavedCurrentPosition = it.currentPosition }
                 closeVideo()
             }
         })
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        if (mMediaPlayer != null) {
-            val videoWidth = mMediaPlayer!!.videoWidth
-            val videoHeight = mMediaPlayer!!.videoHeight
+        mMediaPlayer?.let { player ->
+            val videoWidth = player.videoWidth
+            val videoHeight = player.videoHeight
             if (videoWidth != 0 && videoHeight != 0) {
                 val aspectRatio = videoHeight.toFloat() / videoWidth
                 val width = View.MeasureSpec.getSize(widthMeasureSpec)
@@ -172,11 +185,13 @@ class MovieView @JvmOverloads constructor(context: Context, attrs: AttributeSet?
                 val height = View.MeasureSpec.getSize(heightMeasureSpec)
                 val heightMode = View.MeasureSpec.getMode(heightMeasureSpec)
                 if (mAdjustViewBounds) {
-                    if (widthMode == View.MeasureSpec.EXACTLY && heightMode != View.MeasureSpec.EXACTLY) {
+                    if (widthMode == View.MeasureSpec.EXACTLY
+                            && heightMode != View.MeasureSpec.EXACTLY) {
                         super.onMeasure(widthMeasureSpec,
                                 View.MeasureSpec.makeMeasureSpec((width * aspectRatio).toInt(),
                                         View.MeasureSpec.EXACTLY))
-                    } else if (widthMode != View.MeasureSpec.EXACTLY && heightMode == View.MeasureSpec.EXACTLY) {
+                    } else if (widthMode != View.MeasureSpec.EXACTLY
+                            && heightMode == View.MeasureSpec.EXACTLY) {
                         super.onMeasure(View.MeasureSpec.makeMeasureSpec((height / aspectRatio).toInt(),
                                 View.MeasureSpec.EXACTLY), heightMeasureSpec)
                     } else {
@@ -202,10 +217,8 @@ class MovieView @JvmOverloads constructor(context: Context, attrs: AttributeSet?
     }
 
     override fun onDetachedFromWindow() {
-        if (mTimeoutHandler != null) {
-            mTimeoutHandler!!.removeMessages(TimeoutHandler.MESSAGE_HIDE_CONTROLS)
-            mTimeoutHandler = null
-        }
+        mTimeoutHandler?.removeMessages(TimeoutHandler.MESSAGE_HIDE_CONTROLS)
+        mTimeoutHandler = null
         super.onDetachedFromWindow()
     }
 
@@ -276,24 +289,18 @@ class MovieView @JvmOverloads constructor(context: Context, attrs: AttributeSet?
      * Fast-forward the video.
      */
     fun fastForward() {
-        if (mMediaPlayer == null) {
-            return
-        }
-        mMediaPlayer!!.seekTo(mMediaPlayer!!.currentPosition + FAST_FORWARD_REWIND_INTERVAL)
+        mMediaPlayer?.let { it.seekTo(it.currentPosition + FAST_FORWARD_REWIND_INTERVAL) }
     }
 
     /**
      * Fast-rewind the video.
      */
     fun fastRewind() {
-        if (mMediaPlayer == null) {
-            return
-        }
-        mMediaPlayer!!.seekTo(mMediaPlayer!!.currentPosition - FAST_FORWARD_REWIND_INTERVAL)
+        mMediaPlayer?.let { it.seekTo(it.currentPosition - FAST_FORWARD_REWIND_INTERVAL) }
     }
 
     val isPlaying: Boolean
-        get() = mMediaPlayer != null && mMediaPlayer!!.isPlaying
+        get() = mMediaPlayer?.isPlaying ?: false
 
     fun play() {
         if (mMediaPlayer == null) {
@@ -302,21 +309,18 @@ class MovieView @JvmOverloads constructor(context: Context, attrs: AttributeSet?
         mMediaPlayer!!.start()
         adjustToggleState()
         keepScreenOn = true
-        if (mMovieListener != null) {
-            mMovieListener!!.onMovieStarted()
-        }
+        mMovieListener?.onMovieStarted()
     }
 
     fun pause() {
         if (mMediaPlayer == null) {
+            adjustToggleState()
             return
         }
         mMediaPlayer!!.pause()
         adjustToggleState()
         keepScreenOn = false
-        if (mMovieListener != null) {
-            mMovieListener!!.onMovieStopped()
-        }
+        mMovieListener?.onMovieStopped()
     }
 
     internal fun openVideo(surface: Surface) {
@@ -324,52 +328,42 @@ class MovieView @JvmOverloads constructor(context: Context, attrs: AttributeSet?
             return
         }
         mMediaPlayer = MediaPlayer()
-        mMediaPlayer!!.setSurface(surface)
-        try {
-            resources.openRawResourceFd(mVideoResourceId).use { fd ->
-                mMediaPlayer!!.setDataSource(fd)
-                mMediaPlayer!!.setOnPreparedListener { mediaPlayer ->
-                    // Adjust the aspect ratio of this view
-                    requestLayout()
-                    if (mSavedCurrentPosition > 0) {
-                        mediaPlayer.seekTo(mSavedCurrentPosition)
-                        mSavedCurrentPosition = 0
-                    } else {
-                        // Start automatically
-                        play()
+        mMediaPlayer?.let { player ->
+            player.setSurface(surface)
+            try {
+                resources.openRawResourceFd(mVideoResourceId).use { fd ->
+                    player.setDataSource(fd)
+                    player.setOnPreparedListener { mediaPlayer ->
+                        // Adjust the aspect ratio of this view
+                        requestLayout()
+                        if (mSavedCurrentPosition > 0) {
+                            mediaPlayer.seekTo(mSavedCurrentPosition)
+                            mSavedCurrentPosition = 0
+                        } else {
+                            // Start automatically
+                            play()
+                        }
                     }
-                }
-                mMediaPlayer!!.setOnCompletionListener {
-                    adjustToggleState()
-                    keepScreenOn = false
-                    if (mMovieListener != null) {
-                        mMovieListener!!.onMovieStopped()
+                    player.setOnCompletionListener {
+                        adjustToggleState()
+                        keepScreenOn = false
+                        mMovieListener?.onMovieStopped()
                     }
+                    player.prepare()
                 }
-                mMediaPlayer!!.prepare()
+            } catch (e: IOException) {
+                Log.e(TAG, "Failed to open video", e)
             }
-        } catch (e: IOException) {
-            Log.e(TAG, "Failed to open video", e)
         }
-
     }
 
     internal fun closeVideo() {
-        if (mMediaPlayer != null) {
-            mMediaPlayer!!.release()
-            mMediaPlayer = null
-        }
+        mMediaPlayer?.release()
+        mMediaPlayer = null
     }
 
     internal fun toggle() {
-        if (mMediaPlayer == null) {
-            return
-        }
-        if (mMediaPlayer!!.isPlaying) {
-            pause()
-        } else {
-            play()
-        }
+        mMediaPlayer?.let { if (it.isPlaying) pause() else play() }
     }
 
     internal fun toggleControls() {
@@ -381,24 +375,25 @@ class MovieView @JvmOverloads constructor(context: Context, attrs: AttributeSet?
     }
 
     internal fun adjustToggleState() {
-        if (mMediaPlayer == null || mMediaPlayer!!.isPlaying) {
-            mToggle.contentDescription = resources.getString(R.string.pause)
-            mToggle.setImageResource(R.drawable.ic_pause_64dp)
-        } else {
-            mToggle.contentDescription = resources.getString(R.string.play)
-            mToggle.setImageResource(R.drawable.ic_play_arrow_64dp)
+        mMediaPlayer?.let {
+            if (it.isPlaying) {
+                mToggle.contentDescription = resources.getString(R.string.pause)
+                mToggle.setImageResource(R.drawable.ic_pause_64dp)
+            } else {
+                mToggle.contentDescription = resources.getString(R.string.play)
+                mToggle.setImageResource(R.drawable.ic_play_arrow_64dp)
+            }
         }
     }
 
-    private class TimeoutHandler internal constructor(view: MovieView) : Handler() {
+    private class TimeoutHandler(view: MovieView) : Handler() {
 
         private val mMovieViewRef: WeakReference<MovieView> = WeakReference(view)
 
         override fun handleMessage(msg: Message) {
             when (msg.what) {
                 MESSAGE_HIDE_CONTROLS -> {
-                    val movieView = mMovieViewRef.get()
-                    movieView?.hideControls()
+                    mMovieViewRef.get()?.hideControls()
                 }
                 else -> super.handleMessage(msg)
             }
@@ -407,18 +402,6 @@ class MovieView @JvmOverloads constructor(context: Context, attrs: AttributeSet?
         companion object {
             internal val MESSAGE_HIDE_CONTROLS = 1
         }
-
-    }
-
-    companion object {
-
-        private val TAG = "MovieView"
-
-        /** The amount of time we are stepping forward or backward for fast-forward and fast-rewind.  */
-        private val FAST_FORWARD_REWIND_INTERVAL = 5000 // ms
-
-        /** The amount of time until we fade out the controls.  */
-        private val TIMEOUT_CONTROLS = 3000 // ms
 
     }
 

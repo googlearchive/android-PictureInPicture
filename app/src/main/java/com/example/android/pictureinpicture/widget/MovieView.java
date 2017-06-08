@@ -353,6 +353,7 @@ public class MovieView extends RelativeLayout {
 
     public void pause() {
         if (mMediaPlayer == null) {
+            adjustToggleState();
             return;
         }
         mMediaPlayer.pause();
@@ -428,7 +429,7 @@ public class MovieView extends RelativeLayout {
     }
 
     void adjustToggleState() {
-        if (mMediaPlayer == null || mMediaPlayer.isPlaying()) {
+        if (mMediaPlayer != null && mMediaPlayer.isPlaying()) {
             mToggle.setContentDescription(getResources().getString(R.string.pause));
             mToggle.setImageResource(R.drawable.ic_pause_64dp);
         } else {

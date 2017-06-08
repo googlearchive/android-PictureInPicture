@@ -12,7 +12,7 @@ github:       android-PictureInPicture
 level:        ADVANCED
 icon:         screenshots/icon-web.png
 apiRefs:
-    - android:android.app.PictureInPictureArgs
+    - android:android.app.PictureInPictureParams
     - android:android.app.RemoteAction
     - android:android.app.PendingIntent
 license: apache2

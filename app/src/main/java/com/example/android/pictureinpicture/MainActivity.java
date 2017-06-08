@@ -17,7 +17,7 @@
 package com.example.android.pictureinpicture;
 
 import android.app.PendingIntent;
-import android.app.PictureInPictureArgs;
+import android.app.PictureInPictureParams;
 import android.app.RemoteAction;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -29,6 +29,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.DrawableRes;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Rational;
 import android.view.View;
 import android.widget.ScrollView;
 
@@ -64,7 +65,8 @@ public class MainActivity extends AppCompatActivity {
     private static final int CONTROL_TYPE_PAUSE = 2;
 
     /** The arguments to be used for Picture-in-Picture mode. */
-    private final PictureInPictureArgs mPictureInPictureArgs = new PictureInPictureArgs();
+    private final PictureInPictureParams.Builder mPictureInPictureParamsBuilder =
+            new PictureInPictureParams.Builder();
 
     /** This shows the video. */
     private MovieView mMovieView;
@@ -148,12 +150,12 @@ public class MainActivity extends AppCompatActivity {
                         new Intent(Intent.ACTION_VIEW, Uri.parse(getString(R.string.info_uri))),
                         0)));
 
-        mPictureInPictureArgs.setActions(actions);
+        mPictureInPictureParamsBuilder.setActions(actions).build();
 
         // This is how you can update action items (or aspect ratio) for Picture-in-Picture mode.
         // Note this call can happen even when the app is not in PiP mode. In that case, the
         // arguments will be used for at the next call of #enterPictureInPictureMode.
-        setPictureInPictureArgs(mPictureInPictureArgs);
+        setPictureInPictureParams(mPictureInPictureParamsBuilder.build());
     }
 
     @Override
@@ -185,8 +187,10 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onRestart() {
         super.onRestart();
-        // Show the video controls so the video can be easily resumed.
-        mMovieView.showControls();
+        if (!isInPictureInPictureMode()) {
+            // Show the video controls so the video can be easily resumed.
+            mMovieView.showControls();
+        }
     }
 
     @Override
@@ -249,9 +253,9 @@ public class MainActivity extends AppCompatActivity {
         // Hide the controls in picture-in-picture mode.
         mMovieView.hideControls();
         // Calculate the aspect ratio of the PiP screen.
-        float aspectRatio = (float) mMovieView.getWidth() / mMovieView.getHeight();
-        mPictureInPictureArgs.setAspectRatio(aspectRatio);
-        enterPictureInPictureMode(mPictureInPictureArgs);
+        Rational aspectRatio = new Rational(mMovieView.getWidth(), mMovieView.getHeight());
+        mPictureInPictureParamsBuilder.setAspectRatio(aspectRatio).build();
+        enterPictureInPictureMode(mPictureInPictureParamsBuilder.build());
     }
 
     /**
