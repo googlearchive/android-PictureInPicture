@@ -28,6 +28,7 @@ import android.support.test.espresso.matcher.ViewMatchers.isDisplayed
 import android.support.test.espresso.matcher.ViewMatchers.withId
 import android.support.test.rule.ActivityTestRule
 import android.support.test.runner.AndroidJUnit4
+import android.support.v4.media.session.PlaybackStateCompat
 import android.view.View
 import com.example.android.pictureinpicture.widget.MovieView
 import org.hamcrest.Description
@@ -35,6 +36,8 @@ import org.hamcrest.Matcher
 import org.hamcrest.Matchers.not
 import org.hamcrest.TypeSafeMatcher
 import org.hamcrest.core.AllOf.allOf
+import org.hamcrest.core.Is.`is`
+import org.hamcrest.core.IsEqual.equalTo
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertThat
 import org.junit.Assert.assertTrue
@@ -44,10 +47,10 @@ import org.junit.runner.RunWith
 
 
 @RunWith(AndroidJUnit4::class)
-class MainActivityTest {
+class MediaSessionPlaybackActivityTest {
 
     @Rule @JvmField
-    val rule = ActivityTestRule(MainActivity::class.java)
+    val rule = ActivityTestRule(MediaSessionPlaybackActivity::class.java)
 
     @Test
     fun movie_playingOnPip() {
@@ -66,6 +69,9 @@ class MainActivityTest {
             assertNotNull(view)
             // The video should still be playing
             assertTrue(view.isPlaying)
+
+            // The media session state should be playing.
+            assertMediaStateIs(PlaybackStateCompat.STATE_PLAYING)
         }
     }
 
@@ -78,9 +84,13 @@ class MainActivityTest {
         // Pause
         onView(withId(R.id.toggle)).perform(click())
         onView(withId(R.id.movie)).check(matches(not(isPlaying())))
+        // The media session state should be paused.
+        assertMediaStateIs(PlaybackStateCompat.STATE_PAUSED)
         // Resume
         onView(withId(R.id.toggle)).perform(click())
         onView(withId(R.id.movie)).check(matches(isPlaying()))
+        // The media session state should be playing.
+        assertMediaStateIs(PlaybackStateCompat.STATE_PLAYING)
     }
 
     @Test
@@ -105,6 +115,15 @@ class MainActivityTest {
             assertThat(decorView.systemUiVisibility,
                     not(hasFlag(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN)))
         }
+    }
+
+    private fun assertMediaStateIs(@PlaybackStateCompat.State expectedState: Int) {
+        val state = rule.activity.mediaController.playbackState
+        assertNotNull(state)
+        assertThat(
+                "MediaSession is not in the correct state",
+                state?.state,
+                `is`<Int>(equalTo<Int>(expectedState)))
     }
 
     private fun isPlaying(): Matcher<View> {

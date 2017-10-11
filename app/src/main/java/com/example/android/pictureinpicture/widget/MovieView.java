@@ -40,37 +40,25 @@ import com.example.android.pictureinpicture.R;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 
-
 /**
  * Provides video playback. There is nothing directly related to Picture-in-Picture here.
  *
  * <p>This is similar to {@link android.widget.VideoView}, but it comes with a custom control
- * (play/pause, fast forward, and fast rewind).</p>
+ * (play/pause, fast forward, and fast rewind).
  */
 public class MovieView extends RelativeLayout {
 
-    /**
-     * Monitors all events related to {@link MovieView}.
-     */
-    public static abstract class MovieListener {
+    /** Monitors all events related to {@link MovieView}. */
+    public abstract static class MovieListener {
 
-        /**
-         * Called when the video is started or resumed.
-         */
-        public void onMovieStarted() {
-        }
+        /** Called when the video is started or resumed. */
+        public void onMovieStarted() {}
 
-        /**
-         * Called when the video is paused or finished.
-         */
-        public void onMovieStopped() {
-        }
+        /** Called when the video is paused or finished. */
+        public void onMovieStopped() {}
 
-        /**
-         * Called when this view should be minimized.
-         */
-        public void onMovieMinimized() {
-        }
+        /** Called when this view should be minimized. */
+        public void onMovieMinimized() {}
     }
 
     private static final String TAG = "MovieView";
@@ -95,8 +83,7 @@ public class MovieView extends RelativeLayout {
     MediaPlayer mMediaPlayer;
 
     /** The resource ID for the video to play. */
-    @RawRes
-    private int mVideoResourceId;
+    @RawRes private int mVideoResourceId;
 
     /** Whether we adjust our view bounds or we fill the remaining area with black bars */
     private boolean mAdjustViewBounds;
@@ -123,56 +110,61 @@ public class MovieView extends RelativeLayout {
 
         // Inflate the content
         inflate(context, R.layout.view_movie, this);
-        mSurfaceView = (SurfaceView) findViewById(R.id.surface);
+        mSurfaceView = findViewById(R.id.surface);
         mShade = findViewById(R.id.shade);
-        mToggle = (ImageButton) findViewById(R.id.toggle);
-        mFastForward = (ImageButton) findViewById(R.id.fast_forward);
-        mFastRewind = (ImageButton) findViewById(R.id.fast_rewind);
-        mMinimize = (ImageButton) findViewById(R.id.minimize);
+        mToggle = findViewById(R.id.toggle);
+        mFastForward = findViewById(R.id.fast_forward);
+        mFastRewind = findViewById(R.id.fast_rewind);
+        mMinimize = findViewById(R.id.minimize);
 
         // Attributes
-        final TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.MovieView,
-                defStyleAttr, R.style.Widget_PictureInPicture_MovieView);
+        final TypedArray a =
+                context.obtainStyledAttributes(
+                        attrs,
+                        R.styleable.MovieView,
+                        defStyleAttr,
+                        R.style.Widget_PictureInPicture_MovieView);
         setVideoResourceId(a.getResourceId(R.styleable.MovieView_android_src, 0));
         setAdjustViewBounds(a.getBoolean(R.styleable.MovieView_android_adjustViewBounds, false));
         a.recycle();
 
         // Bind view events
-        final OnClickListener listener = new OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                switch (view.getId()) {
-                    case R.id.surface:
-                        toggleControls();
-                        break;
-                    case R.id.toggle:
-                        toggle();
-                        break;
-                    case R.id.fast_forward:
-                        fastForward();
-                        break;
-                    case R.id.fast_rewind:
-                        fastRewind();
-                        break;
-                    case R.id.minimize:
-                        if (mMovieListener != null) {
-                            mMovieListener.onMovieMinimized();
+        final OnClickListener listener =
+                new OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        switch (view.getId()) {
+                            case R.id.surface:
+                                toggleControls();
+                                break;
+                            case R.id.toggle:
+                                toggle();
+                                break;
+                            case R.id.fast_forward:
+                                fastForward();
+                                break;
+                            case R.id.fast_rewind:
+                                fastRewind();
+                                break;
+                            case R.id.minimize:
+                                if (mMovieListener != null) {
+                                    mMovieListener.onMovieMinimized();
+                                }
+                                break;
                         }
-                        break;
-                }
-                // Start or reset the timeout to hide controls
-                if (mMediaPlayer != null) {
-                    if (mTimeoutHandler == null) {
-                        mTimeoutHandler = new TimeoutHandler(MovieView.this);
+                        // Start or reset the timeout to hide controls
+                        if (mMediaPlayer != null) {
+                            if (mTimeoutHandler == null) {
+                                mTimeoutHandler = new TimeoutHandler(MovieView.this);
+                            }
+                            mTimeoutHandler.removeMessages(TimeoutHandler.MESSAGE_HIDE_CONTROLS);
+                            if (mMediaPlayer.isPlaying()) {
+                                mTimeoutHandler.sendEmptyMessageDelayed(
+                                        TimeoutHandler.MESSAGE_HIDE_CONTROLS, TIMEOUT_CONTROLS);
+                            }
+                        }
                     }
-                    mTimeoutHandler.removeMessages(TimeoutHandler.MESSAGE_HIDE_CONTROLS);
-                    if (mMediaPlayer.isPlaying()) {
-                        mTimeoutHandler.sendEmptyMessageDelayed(
-                                TimeoutHandler.MESSAGE_HIDE_CONTROLS, TIMEOUT_CONTROLS);
-                    }
-                }
-            }
-        };
+                };
         mSurfaceView.setOnClickListener(listener);
         mToggle.setOnClickListener(listener);
         mFastForward.setOnClickListener(listener);
@@ -180,25 +172,29 @@ public class MovieView extends RelativeLayout {
         mMinimize.setOnClickListener(listener);
 
         // Prepare video playback
-        mSurfaceView.getHolder().addCallback(new SurfaceHolder.Callback() {
-            @Override
-            public void surfaceCreated(SurfaceHolder holder) {
-                openVideo(holder.getSurface());
-            }
+        mSurfaceView
+                .getHolder()
+                .addCallback(
+                        new SurfaceHolder.Callback() {
+                            @Override
+                            public void surfaceCreated(SurfaceHolder holder) {
+                                openVideo(holder.getSurface());
+                            }
 
-            @Override
-            public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-                // Do nothing
-            }
+                            @Override
+                            public void surfaceChanged(
+                                    SurfaceHolder holder, int format, int width, int height) {
+                                // Do nothing
+                            }
 
-            @Override
-            public void surfaceDestroyed(SurfaceHolder holder) {
-                if (mMediaPlayer != null) {
-                    mSavedCurrentPosition = mMediaPlayer.getCurrentPosition();
-                }
-                closeVideo();
-            }
-        });
+                            @Override
+                            public void surfaceDestroyed(SurfaceHolder holder) {
+                                if (mMediaPlayer != null) {
+                                    mSavedCurrentPosition = mMediaPlayer.getCurrentPosition();
+                                }
+                                closeVideo();
+                            }
+                        });
     }
 
     @Override
@@ -214,17 +210,21 @@ public class MovieView extends RelativeLayout {
                 final int heightMode = MeasureSpec.getMode(heightMeasureSpec);
                 if (mAdjustViewBounds) {
                     if (widthMode == MeasureSpec.EXACTLY && heightMode != MeasureSpec.EXACTLY) {
-                        super.onMeasure(widthMeasureSpec,
-                                MeasureSpec.makeMeasureSpec((int) (width * aspectRatio),
-                                        MeasureSpec.EXACTLY));
+                        super.onMeasure(
+                                widthMeasureSpec,
+                                MeasureSpec.makeMeasureSpec(
+                                        (int) (width * aspectRatio), MeasureSpec.EXACTLY));
                     } else if (widthMode != MeasureSpec.EXACTLY
                             && heightMode == MeasureSpec.EXACTLY) {
-                        super.onMeasure(MeasureSpec.makeMeasureSpec((int) (height / aspectRatio),
-                                MeasureSpec.EXACTLY), heightMeasureSpec);
+                        super.onMeasure(
+                                MeasureSpec.makeMeasureSpec(
+                                        (int) (height / aspectRatio), MeasureSpec.EXACTLY),
+                                heightMeasureSpec);
                     } else {
-                        super.onMeasure(widthMeasureSpec,
-                                MeasureSpec.makeMeasureSpec((int) (width * aspectRatio),
-                                        MeasureSpec.EXACTLY));
+                        super.onMeasure(
+                                widthMeasureSpec,
+                                MeasureSpec.makeMeasureSpec(
+                                        (int) (width * aspectRatio), MeasureSpec.EXACTLY));
                     }
                 } else {
                     final float viewRatio = (float) height / width;
@@ -262,6 +262,15 @@ public class MovieView extends RelativeLayout {
     }
 
     /**
+     * The raw resource id of the video to play.
+     *
+     * @return ID of the video resource.
+     */
+    public int getVideoResourceId() {
+        return mVideoResourceId;
+    }
+
+    /**
      * Sets the raw resource ID of video to play.
      *
      * @param id The raw resource ID.
@@ -291,9 +300,7 @@ public class MovieView extends RelativeLayout {
         requestLayout();
     }
 
-    /**
-     * Shows all the controls.
-     */
+    /** Shows all the controls. */
     public void showControls() {
         TransitionManager.beginDelayedTransition(this);
         mShade.setVisibility(View.VISIBLE);
@@ -303,9 +310,7 @@ public class MovieView extends RelativeLayout {
         mMinimize.setVisibility(View.VISIBLE);
     }
 
-    /**
-     * Hides all the controls.
-     */
+    /** Hides all the controls. */
     public void hideControls() {
         TransitionManager.beginDelayedTransition(this);
         mShade.setVisibility(View.INVISIBLE);
@@ -315,9 +320,7 @@ public class MovieView extends RelativeLayout {
         mMinimize.setVisibility(View.INVISIBLE);
     }
 
-    /**
-     * Fast-forward the video.
-     */
+    /** Fast-forward the video. */
     public void fastForward() {
         if (mMediaPlayer == null) {
             return;
@@ -325,14 +328,25 @@ public class MovieView extends RelativeLayout {
         mMediaPlayer.seekTo(mMediaPlayer.getCurrentPosition() + FAST_FORWARD_REWIND_INTERVAL);
     }
 
-    /**
-     * Fast-rewind the video.
-     */
+    /** Fast-rewind the video. */
     public void fastRewind() {
         if (mMediaPlayer == null) {
             return;
         }
         mMediaPlayer.seekTo(mMediaPlayer.getCurrentPosition() - FAST_FORWARD_REWIND_INTERVAL);
+    }
+
+    /**
+     * Returns the current position of the video. If the the player has not been created, then
+     * assumes the beginning of the video.
+     *
+     * @return The current position of the video.
+     */
+    public int getCurrentPosition() {
+        if (mMediaPlayer == null) {
+            return 0;
+        }
+        return mMediaPlayer.getCurrentPosition();
     }
 
     public boolean isPlaying() {
@@ -370,32 +384,40 @@ public class MovieView extends RelativeLayout {
         }
         mMediaPlayer = new MediaPlayer();
         mMediaPlayer.setSurface(surface);
+        startVideo();
+    }
+
+    /** Restarts playback of the video. */
+    public void startVideo() {
+        mMediaPlayer.reset();
         try (AssetFileDescriptor fd = getResources().openRawResourceFd(mVideoResourceId)) {
             mMediaPlayer.setDataSource(fd);
-            mMediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-                @Override
-                public void onPrepared(MediaPlayer mediaPlayer) {
-                    // Adjust the aspect ratio of this view
-                    requestLayout();
-                    if (mSavedCurrentPosition > 0) {
-                        mediaPlayer.seekTo(mSavedCurrentPosition);
-                        mSavedCurrentPosition = 0;
-                    } else {
-                        // Start automatically
-                        play();
-                    }
-                }
-            });
-            mMediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-                @Override
-                public void onCompletion(MediaPlayer mediaPlayer) {
-                    adjustToggleState();
-                    setKeepScreenOn(false);
-                    if (mMovieListener != null) {
-                        mMovieListener.onMovieStopped();
-                    }
-                }
-            });
+            mMediaPlayer.setOnPreparedListener(
+                    new MediaPlayer.OnPreparedListener() {
+                        @Override
+                        public void onPrepared(MediaPlayer mediaPlayer) {
+                            // Adjust the aspect ratio of this view
+                            requestLayout();
+                            if (mSavedCurrentPosition > 0) {
+                                mediaPlayer.seekTo(mSavedCurrentPosition);
+                                mSavedCurrentPosition = 0;
+                            } else {
+                                // Start automatically
+                                play();
+                            }
+                        }
+                    });
+            mMediaPlayer.setOnCompletionListener(
+                    new MediaPlayer.OnCompletionListener() {
+                        @Override
+                        public void onCompletion(MediaPlayer mediaPlayer) {
+                            adjustToggleState();
+                            setKeepScreenOn(false);
+                            if (mMovieListener != null) {
+                                mMovieListener.onMovieStopped();
+                            }
+                        }
+                    });
             mMediaPlayer.prepare();
         } catch (IOException e) {
             Log.e(TAG, "Failed to open video", e);
@@ -461,7 +483,5 @@ public class MovieView extends RelativeLayout {
                     super.handleMessage(msg);
             }
         }
-
     }
-
 }

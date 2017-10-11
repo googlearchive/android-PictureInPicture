@@ -9,9 +9,8 @@ pause or resume the video.
 Introduction
 ------------
 
-The O Developer Preview allows activities to launch in Picture-in-Picture (PiP) mode. PiP is a
-special type of [multi-window][1] mode mostly used for video playback. PiP mode is already available
-for [Android TV][2]; the O Developer Preview makes the feature available on other Android devices.
+As of Android O, activities can launch in [Picture-in-Picture (PiP)][1] mode. PiP is a
+special type of [multi-window][2] mode mostly used for video playback.
 
 The app is *paused* when it enters PiP mode, but it should continue showing content. For this
 reason, you should make sure your app does not pause playback in its [onPause()][3]
@@ -35,7 +34,7 @@ are used as menu items in PiP mode. You can use a [PendingIntent][9] to specify 
 item is selected.
 
 [1]: https://developer.android.com/guide/topics/ui/multi-window.html
-[2]: https://developer.android.com/training/tv/playback/picture-in-picture.html
+[2]: https://developer.android.com/guide/topics/ui/picture-in-picture.html
 [3]: https://developer.android.com/reference/android/app/Activity.html#onPause()
 [4]: https://developer.android.com/reference/android/app/Activity.html#onStop()
 [5]: https://developer.android.com/guide/topics/ui/multi-window.html#lifecycle
@@ -47,8 +46,8 @@ item is selected.
 Pre-requisites
 --------------
 
-- Android SDK 25
-- Android Build Tools v25.0.3
+- Android SDK 26
+- Android Build Tools v26.0.2
 - Android Support Repository
 
 Screenshots

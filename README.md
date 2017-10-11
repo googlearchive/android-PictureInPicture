@@ -10,9 +10,8 @@ pause or resume the video.
 Introduction
 ------------
 
-The O Developer Preview allows activities to launch in Picture-in-Picture (PiP) mode. PiP is a
-special type of [multi-window][1] mode mostly used for video playback. PiP mode is already available
-for [Android TV][2]; the O Developer Preview makes the feature available on other Android devices.
+As of Android O, activities can launch in [Picture-in-Picture (PiP)][1] mode. PiP is a
+special type of [multi-window][2] mode mostly used for video playback.
 
 The app is *paused* when it enters PiP mode, but it should continue showing content. For this
 reason, you should make sure your app does not pause playback in its [onPause()][3]
@@ -20,10 +19,9 @@ handler. Instead, you should pause video in [onStop()][4]. For more information,
 Lifecycle][5].
 
 To specify that your activity can use PIP mode, set `android:supportsPictureInPicture` to `true` in
-the manifest. (Beginning with the O Developer Preview, you do not need to set
-`android:resizeableActivity` to `true` if you are supporting PIP mode, either on Android TV or on
-other Android devices; you only need to `setrandroid:resizeableActivity` if your activity supports
-other multi-window modes.)
+the manifest. (Beginning with Android O, you do not need to set
+`android:resizeableActivity` to `true` if you are supporting PIP mode you only need to
+`setrandroid:resizeableActivity` if your activity supports other multi-window modes.)
 
 You can pass a [PictureInPictureParams][6] to [enterPictureInPictureMode()][7] to specify how an
 activity should behave when it is in PiP mode. You can also use it to call
@@ -35,8 +33,8 @@ available for PiP mode. The aspect ratio is used when the activity is in PiP mod
 are used as menu items in PiP mode. You can use a [PendingIntent][9] to specify what to do when the
 item is selected.
 
-[1]: https://developer.android.com/guide/topics/ui/multi-window.html
-[2]: https://developer.android.com/training/tv/playback/picture-in-picture.html
+[1]: https://developer.android.com/guide/topics/ui/picture-in-picture.html
+[2]: https://developer.android.com/guide/topics/ui/multi-window.html
 [3]: https://developer.android.com/reference/android/app/Activity.html#onPause()
 [4]: https://developer.android.com/reference/android/app/Activity.html#onStop()
 [5]: https://developer.android.com/guide/topics/ui/multi-window.html#lifecycle
@@ -48,8 +46,8 @@ item is selected.
 Pre-requisites
 --------------
 
-- Android SDK 25
-- Android Build Tools v25.0.3
+- Android SDK 26
+- Android Build Tools v26.0.1
 - Android Support Repository
 
 Screenshots

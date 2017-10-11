@@ -60,6 +60,12 @@
                 android:text="@string/explanation"
                 android:textAppearance="@style/TextAppearance.AppCompat.Body1"/>
 
+            <Button
+                android:id="@+id/switch_example"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                tools:text="@string/switch_media_session"/>
+
         </LinearLayout>
 
     </ScrollView>

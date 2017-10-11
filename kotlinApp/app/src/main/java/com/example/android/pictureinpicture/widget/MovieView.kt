@@ -223,6 +223,13 @@ class MovieView @JvmOverloads constructor(context: Context, attrs: AttributeSet?
     }
 
     /**
+     * The raw resource id of the video to play.
+
+     * @return ID of the video resource.
+     */
+    fun getVideoResourceId(): Int = mVideoResourceId
+
+    /**
      * Sets the listener to monitor movie events.
 
      * @param movieListener The listener to be set.
@@ -299,6 +306,14 @@ class MovieView @JvmOverloads constructor(context: Context, attrs: AttributeSet?
         mMediaPlayer?.let { it.seekTo(it.currentPosition - FAST_FORWARD_REWIND_INTERVAL) }
     }
 
+    /**
+     * Returns the current position of the video. If the the player has not been created, then
+     * assumes the beginning of the video.
+
+     * @return The current position of the video.
+     */
+    fun getCurrentPosition(): Int = mMediaPlayer?.currentPosition ?: 0
+
     val isPlaying: Boolean
         get() = mMediaPlayer?.isPlaying ?: false
 
@@ -330,6 +345,16 @@ class MovieView @JvmOverloads constructor(context: Context, attrs: AttributeSet?
         mMediaPlayer = MediaPlayer()
         mMediaPlayer?.let { player ->
             player.setSurface(surface)
+            startVideo()
+        }
+    }
+
+    /**
+     * Restarts playback of the video.
+     */
+    public fun startVideo() {
+        mMediaPlayer?.let { player ->
+            player.reset()
             try {
                 resources.openRawResourceFd(mVideoResourceId).use { fd ->
                     player.setDataSource(fd)

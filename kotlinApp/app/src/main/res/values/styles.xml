@@ -29,9 +29,4 @@
         <item name="android:adjustViewBounds">false</item>
     </style>
 
-    <style name="ThemeOverlay.PictureInPicture.SeekBar" parent="ThemeOverlay.AppCompat">
-        <item name="colorAccent">@android:color/white</item>
-        <item name="colorControlNormal">@android:color/white</item>
-    </style>
-
 </resources>

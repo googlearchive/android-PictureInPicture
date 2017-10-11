@@ -16,25 +16,14 @@
 
 package com.example.android.pictureinpicture;
 
-import static android.support.test.espresso.Espresso.onView;
-import static android.support.test.espresso.action.ViewActions.click;
-import static android.support.test.espresso.assertion.ViewAssertions.matches;
-import static android.support.test.espresso.matcher.ViewMatchers.isAssignableFrom;
-import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
-import static android.support.test.espresso.matcher.ViewMatchers.withId;
-
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.core.AllOf.allOf;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-
 import android.content.pm.ActivityInfo;
+import android.media.session.PlaybackState;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.espresso.UiController;
 import android.support.test.espresso.ViewAction;
 import android.support.test.rule.ActivityTestRule;
 import android.support.test.runner.AndroidJUnit4;
+import android.support.v4.media.session.PlaybackStateCompat;
 import android.view.View;
 
 import com.example.android.pictureinpicture.widget.MovieView;
@@ -46,12 +35,27 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import static android.support.test.espresso.Espresso.onView;
+import static android.support.test.espresso.action.ViewActions.click;
+import static android.support.test.espresso.assertion.ViewAssertions.matches;
+import static android.support.test.espresso.matcher.ViewMatchers.isAssignableFrom;
+import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
+import static android.support.test.espresso.matcher.ViewMatchers.withId;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.core.AllOf.allOf;
+import static org.hamcrest.core.Is.is;
+import static org.hamcrest.core.IsEqual.equalTo;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+
 
 @RunWith(AndroidJUnit4.class)
-public class MainActivityTest {
+public class MediaSessionPlaybackActivityTest {
 
     @Rule
-    public ActivityTestRule<MainActivity> rule = new ActivityTestRule<>(MainActivity.class);
+    public ActivityTestRule<MediaSessionPlaybackActivity> rule =
+            new ActivityTestRule<>(MediaSessionPlaybackActivity.class);
 
     @Test
     public void movie_playingOnPip() throws Throwable {
@@ -72,6 +76,9 @@ public class MainActivityTest {
                 assertNotNull(view);
                 // The video should still be playing
                 assertTrue(view.isPlaying());
+
+                // The media session state should be playing.
+                assertMediaStateIs(PlaybackStateCompat.STATE_PLAYING);
             }
         });
     }
@@ -85,9 +92,13 @@ public class MainActivityTest {
         // Pause
         onView(withId(R.id.toggle)).perform(click());
         onView(withId(R.id.movie)).check(matches((not(isPlaying()))));
+        // The media session state should be paused.
+        assertMediaStateIs(PlaybackStateCompat.STATE_PAUSED);
         // Resume
         onView(withId(R.id.toggle)).perform(click());
         onView(withId(R.id.movie)).check(matches(isPlaying()));
+        // The media session state should be playing.
+        assertMediaStateIs(PlaybackStateCompat.STATE_PLAYING);
     }
 
     @Test
@@ -128,6 +139,15 @@ public class MainActivityTest {
                         not(hasFlag(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN)));
             }
         });
+    }
+
+    private void assertMediaStateIs(@PlaybackStateCompat.State int expectedState) {
+        PlaybackState state = rule.getActivity().getMediaController().getPlaybackState();
+        assertNotNull(state);
+        assertThat(
+                "MediaSession is not in the correct state",
+                state.getState(),
+                is(equalTo(expectedState)));
     }
 
     private static Matcher<? super View> isPlaying() {

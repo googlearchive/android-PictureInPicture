@@ -31,6 +31,7 @@ import android.support.annotation.DrawableRes
 import android.support.v7.app.AppCompatActivity
 import android.util.Rational
 import android.view.View
+import android.widget.Button
 import android.widget.ScrollView
 import com.example.android.pictureinpicture.widget.MovieView
 import java.util.*
@@ -168,12 +169,16 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         // View references
-        mMovieView = findViewById(R.id.movie) as MovieView
-        mScrollView = findViewById(R.id.scroll) as ScrollView
+        mMovieView = findViewById<MovieView>(R.id.movie)
+        mScrollView = findViewById<ScrollView>(R.id.scroll)
+
+        val switchExampleButton = findViewById<Button>(R.id.switch_example)
+        switchExampleButton.text = getString(R.string.switch_media_session)
+        switchExampleButton.setOnClickListener(SwitchActivityOnClick())
 
         // Set up the video; it automatically starts.
         mMovieView.setMovieListener(mMovieListener)
-        findViewById(R.id.pip).setOnClickListener { minimize() }
+        findViewById<Button>(R.id.pip).setOnClickListener { minimize() }
     }
 
     override fun onStop() {
@@ -203,8 +208,8 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean,
-                                               newConfig: Configuration) {
+    override fun onPictureInPictureModeChanged(
+            isInPictureInPictureMode: Boolean, newConfig: Configuration) {
         super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
         if (isInPictureInPictureMode) {
             // Starts receiving events from action items in PiP mode.
@@ -253,4 +258,13 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Launches [MediaSessionPlaybackActivity] and closes this activity.
+     */
+    private inner class SwitchActivityOnClick : View.OnClickListener {
+        override fun onClick(view: View) {
+            startActivity(Intent(view.context, MediaSessionPlaybackActivity::class.java))
+            finish()
+        }
+    }
 }

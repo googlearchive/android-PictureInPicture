@@ -31,4 +31,6 @@
     Picture-in-Picture mode. On Picture-in-Picture screen, the app shows an action item to pause or
     resume the video.
     ]]></string>
+    <string name="switch_custom">Switch to custom actions example</string>
+    <string name="switch_media_session">Switch to using MediaSession</string>
 </resources>

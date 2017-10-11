@@ -5,7 +5,7 @@
 ---
 status:       PUBLISHED
 technologies: [Android]
-categories:   [Media, Android O Preview]
+categories:   [Media, Android Oreo]
 languages:    [Kotlin]
 solutions:    [Mobile]
 github:       android-PictureInPicture
@@ -15,4 +15,5 @@ apiRefs:
     - android:android.app.PictureInPictureParams
     - android:android.app.RemoteAction
     - android:android.app.PendingIntent
+    - android:android.support.v4.media.session.MediaSessionCompat
 license: apache2
