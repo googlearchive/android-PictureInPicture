@@ -85,6 +85,9 @@ public class MovieView extends RelativeLayout {
     /** The resource ID for the video to play. */
     @RawRes private int mVideoResourceId;
 
+    /** The title of the video */
+    private String mTitle;
+
     /** Whether we adjust our view bounds or we fill the remaining area with black bars */
     private boolean mAdjustViewBounds;
 
@@ -117,16 +120,17 @@ public class MovieView extends RelativeLayout {
         mFastRewind = findViewById(R.id.fast_rewind);
         mMinimize = findViewById(R.id.minimize);
 
-        // Attributes
-        final TypedArray a =
+        final TypedArray attributes =
                 context.obtainStyledAttributes(
                         attrs,
                         R.styleable.MovieView,
                         defStyleAttr,
                         R.style.Widget_PictureInPicture_MovieView);
-        setVideoResourceId(a.getResourceId(R.styleable.MovieView_android_src, 0));
-        setAdjustViewBounds(a.getBoolean(R.styleable.MovieView_android_adjustViewBounds, false));
-        a.recycle();
+        setVideoResourceId(attributes.getResourceId(R.styleable.MovieView_android_src, 0));
+        setAdjustViewBounds(
+                attributes.getBoolean(R.styleable.MovieView_android_adjustViewBounds, false));
+        setTitle(attributes.getString(R.styleable.MovieView_android_title));
+        attributes.recycle();
 
         // Bind view events
         final OnClickListener listener =
@@ -259,6 +263,24 @@ public class MovieView extends RelativeLayout {
      */
     public void setMovieListener(@Nullable MovieListener movieListener) {
         mMovieListener = movieListener;
+    }
+
+    /**
+     * Sets the title of the video to play.
+     *
+     * @param title of the video.
+     */
+    public void setTitle(String title) {
+        this.mTitle = title;
+    }
+
+    /**
+     * The title of the video to play.
+     *
+     * @return title of the video.
+     */
+    public String getTitle() {
+        return mTitle;
     }
 
     /**

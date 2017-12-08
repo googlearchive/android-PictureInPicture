@@ -20,6 +20,7 @@ import android.app.PictureInPictureParams;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
+import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
@@ -136,6 +137,11 @@ public class MediaSessionPlaybackActivity extends AppCompatActivity {
                         | MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
         mSession.setActive(true);
         MediaControllerCompat.setMediaController(this, mSession.getController());
+
+        MediaMetadataCompat metadata = new MediaMetadataCompat.Builder()
+                .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, mMovieView.getTitle())
+                .build();
+        mSession.setMetadata(metadata);
 
         MediaSessionCallback mMediaSessionCallback = new MediaSessionCallback(mMovieView);
         mSession.setCallback(mMediaSessionCallback);

@@ -97,6 +97,8 @@ class MovieView @JvmOverloads constructor(context: Context, attrs: AttributeSet?
     @RawRes
     private var mVideoResourceId: Int = 0
 
+    var title: String = ""
+
     /** Whether we adjust our view bounds or we fill the remaining area with black bars  */
     private var mAdjustViewBounds: Boolean = false
 
@@ -125,6 +127,7 @@ class MovieView @JvmOverloads constructor(context: Context, attrs: AttributeSet?
                 defStyleAttr, R.style.Widget_PictureInPicture_MovieView)
         setVideoResourceId(a.getResourceId(R.styleable.MovieView_android_src, 0))
         setAdjustViewBounds(a.getBoolean(R.styleable.MovieView_android_adjustViewBounds, false))
+        title = a.getString(R.styleable.MovieView_android_title)
         a.recycle()
 
         // Bind view events
