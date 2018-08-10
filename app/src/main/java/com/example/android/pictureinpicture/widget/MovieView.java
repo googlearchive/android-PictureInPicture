@@ -45,6 +45,8 @@ import java.lang.ref.WeakReference;
  *
  * <p>This is similar to {@link android.widget.VideoView}, but it comes with a custom control
  * (play/pause, fast forward, and fast rewind).
+ *
+ * Author name : Babu Kaliyamoorthy
  */
 public class MovieView extends RelativeLayout {
 
